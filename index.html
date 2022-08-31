@@ -165,7 +165,7 @@
                 this.isError = false; 
                 userLands.forEach(land => {
                     let size = land.metadata.name.split(" ")[0];
-                    let rarity = land.metadata.rarity.toLowerCase();;
+                    let rarity = land.metadata.rarity;
                     this.collection[size]['rarities'][rarity]['in_wallet'] += 1;
                     // this.wallet_rewards += this.collection[size]['rarities'][rarity]['staking_reward'];
                 });
