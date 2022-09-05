@@ -117,7 +117,8 @@
                 jpgListings.forEach(listing => {
                     processedListings.push({
                         'size': listing['display_name'].split(" ")[0],
-                        'rarity': listing['traits']['rarity'],
+                        // 'rarity': listing['traits']['rarity'],
+                        'rarity': listing['traits']['rarity'].charAt(0).toUpperCase() + listing['traits']['rarity'].slice(1),
                         'price': listing['listing_lovelace']/1000000,
                         'asset_id': listing['asset_id']
                     })
@@ -128,13 +129,15 @@
                         let floor_land = processedListings.find(listing => {
                             return listing['size'] == size && listing['rarity'] == rarity;
                         });
-                        this.collection[size]['rarities'][rarity]['floor'] = floor_land['price'];
-                        this.collection[size]['rarities'][rarity]['asset_id'] = floor_land['asset_id'];
-                        this.collection[size]['rarities'][rarity]['price_diff'] =  (floor_land['price'] - this.collection[size]['mint']).toFixed(2);
-                        this.collection[size]['rarities'][rarity]['price_diff_percentage'] = (this.collection[size]['rarities'][rarity]['price_diff'] / (this.collection[size]['mint'] / 100)).toFixed(2).toString() + '%';
-                        this.collection[size]['rarities'][rarity]['price_m2'] =  (floor_land['price']/this.collection[size]['area']).toFixed(3);
-                        // this.collection[size]['rarities'][rarity]['reward_price'] =  (this.collection[size]['rarities'][rarity]['staking_reward']/floor_land['price']).toFixed(4);;
-                        this.collection[size]['rarities'][rarity]['url'] =  'https://www.jpg.store/asset/' + floor_land['asset_id'];
+                        if(floor_land){
+                            this.collection[size]['rarities'][rarity]['floor'] = floor_land['price'];
+                            this.collection[size]['rarities'][rarity]['asset_id'] = floor_land['asset_id'];
+                            this.collection[size]['rarities'][rarity]['price_diff'] =  (floor_land['price'] - this.collection[size]['mint']).toFixed(2);
+                            this.collection[size]['rarities'][rarity]['price_diff_percentage'] = (this.collection[size]['rarities'][rarity]['price_diff'] / (this.collection[size]['mint'] / 100)).toFixed(2).toString() + '%';
+                            this.collection[size]['rarities'][rarity]['price_m2'] =  (floor_land['price']/this.collection[size]['area']).toFixed(3);
+                            // this.collection[size]['rarities'][rarity]['reward_price'] =  (this.collection[size]['rarities'][rarity]['staking_reward']/floor_land['price']).toFixed(4);;
+                            this.collection[size]['rarities'][rarity]['url'] =  'https://www.jpg.store/asset/' + floor_land['asset_id'];
+                        }
                     }
                 }
             },
@@ -165,7 +168,7 @@
                 this.isError = false; 
                 userLands.forEach(land => {
                     let size = land.metadata.name.split(" ")[0];
-                    let rarity = land.metadata.rarity;
+                    let rarity = land.metadata.rarity.charAt(0).toUpperCase() + land.metadata.rarity.slice(1);
                     this.collection[size]['rarities'][rarity]['in_wallet'] += 1;
                     // this.wallet_rewards += this.collection[size]['rarities'][rarity]['staking_reward'];
                 });
