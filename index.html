@@ -96,50 +96,38 @@
                 let jpgListings = [];
                 let processedListings = [];
 
-                await fetch('https://server.jpgstoreapis.com/search/tokens?policyIds=["9cce4bbd9f6e06ef9d67b95ad8511532b4569d290d1575fcbac48732"]&saleType=buy-now&sortBy=price-low-to-high&traits={}&nameQuery=&verified=default&pagination={}&size=10000')
-                .then(response => {
-                    if (!response.ok) {
-                        this.isLoadingJpg = false;
-                        this.isErrorJpg = true;
-                        this.errorJpg = `Error: ${response.status} - ${response.statusText}`
-                    }
-                    return response.json()
-                })
-                .then((data) => {
-                    jpgListings = data['tokens'];
-                    this.isLoadingJpg = false;
-                }).catch(function (err) {
-                    this.isLoadingJpg = false;
-                    this.errorJpg = `Error :(`;
-                    this.isErrorJpg = true;
-                });
-
-                jpgListings.forEach(listing => {
-                    processedListings.push({
-                        'size': listing['display_name'].split(" ")[0],
-                        // 'rarity': listing['traits']['rarity'],
-                        'rarity': listing['traits']['rarity'].charAt(0).toUpperCase() + listing['traits']['rarity'].slice(1),
-                        'price': listing['listing_lovelace']/1000000,
-                        'asset_id': listing['asset_id']
-                    })
-                });
-
                 for (let size in this.collection){
                     for(let rarity in this.collection[size]['rarities']){
-                        let floor_land = processedListings.find(listing => {
-                            return listing['size'] == size && listing['rarity'] == rarity;
-                        });
-                        if(floor_land){
-                            this.collection[size]['rarities'][rarity]['floor'] = floor_land['price'];
-                            this.collection[size]['rarities'][rarity]['asset_id'] = floor_land['asset_id'];
-                            this.collection[size]['rarities'][rarity]['price_diff'] =  (floor_land['price'] - this.collection[size]['mint']).toFixed(2);
-                            this.collection[size]['rarities'][rarity]['price_diff_percentage'] = (this.collection[size]['rarities'][rarity]['price_diff'] / (this.collection[size]['mint'] / 100)).toFixed(2).toString() + '%';
-                            this.collection[size]['rarities'][rarity]['price_m2'] =  (floor_land['price']/this.collection[size]['area']).toFixed(3);
-                            // this.collection[size]['rarities'][rarity]['reward_price'] =  (this.collection[size]['rarities'][rarity]['staking_reward']/floor_land['price']).toFixed(4);;
-                            this.collection[size]['rarities'][rarity]['url'] =  'https://www.jpg.store/asset/' + floor_land['asset_id'];
+                        const response = await fetch(`https://server.jpgstoreapis.com/search/tokens?policyIds=[%229cce4bbd9f6e06ef9d67b95ad8511532b4569d290d1575fcbac48732%22]&saleType=default&sortBy=price-low-to-high&traits=%7B%22rarity%22:[%22${rarity}%22],%22size%22:[%22${size}%22]%7D&listingTypes=[%22ALL_LISTINGS%22]&nameQuery=&verified=default&onlyMainBundleAsset=false&size=20`)
+
+                        if (!response.ok) {
+                            this.isLoadingJpg = false;
+                            this.isErrorJpg = true;
+                            this.errorJpg = `Error: ${response.status} - ${response.statusText}`
+                            continue;
                         }
+                        
+                        const lands = await response.json()
+                        const cheapest = {
+                            'size': lands['tokens'][0]['display_name'].split(" ")[0],
+                            'rarity': lands['tokens'][0]['traits']['rarity'],
+                            'price': lands['tokens'][0]['listing_lovelace']/1000000,
+                            'asset_id': lands['tokens'][0]['asset_id']
+                        }
+                        
+                        if(cheapest['price'] > 0){
+                            this.collection[size]['rarities'][rarity]['floor'] = cheapest['price'];
+                            this.collection[size]['rarities'][rarity]['asset_id'] = cheapest['asset_id'];
+                            this.collection[size]['rarities'][rarity]['price_diff'] =  (cheapest['price'] - this.collection[size]['mint']).toFixed(2);
+                            this.collection[size]['rarities'][rarity]['price_diff_percentage'] = (this.collection[size]['rarities'][rarity]['price_diff'] / (this.collection[size]['mint'] / 100)).toFixed(2).toString() + '%';
+                            this.collection[size]['rarities'][rarity]['price_m2'] =  (cheapest['price']/this.collection[size]['area']).toFixed(2);
+                            this.collection[size]['rarities'][rarity]['url'] =  'https://www.jpg.store/asset/' + cheapest['asset_id']; 
+                        }
+                        
                     }
                 }
+                this.isLoadingJpg = false;
+                this.jpgLoaded = true;
             },
 
             async fetchLand(){
