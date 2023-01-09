@@ -151,7 +151,12 @@
 
                 for (let size in this.collection){
                     for(let rarity in this.collection[size]['rarities']){
-                        const response = await fetch(`https://server.jpgstoreapis.com/search/tokens?policyIds=[%229cce4bbd9f6e06ef9d67b95ad8511532b4569d290d1575fcbac48732%22]&saleType=default&sortBy=price-low-to-high&traits=%7B%22rarity%22:[%22${rarity}%22],%22size%22:[%22${size}%22]%7D&listingTypes=[%22ALL_LISTINGS%22]&nameQuery=&verified=default&onlyMainBundleAsset=false&size=20`)
+                        const traits={
+                            size:[size],
+                            rarity:[rarity]
+                        }
+                        const encodedTraits=encodeURIComponent(btoa(JSON.stringify(traits)))
+                        const response = await fetch(`https://server.jpgstoreapis.com/search/tokens?policyIds=9cce4bbd9f6e06ef9d67b95ad8511532b4569d290d1575fcbac48732&saleType=default&sortBy=price-low-to-high&traits=${encodedTraits}&listingTypes=ALL_LISTINGS&nameQuery=&verified=default&onlyMainBundleAsset=false&size=1`)
 
                         if (!response.ok) {
                             this.isLoadingJpg = false;
